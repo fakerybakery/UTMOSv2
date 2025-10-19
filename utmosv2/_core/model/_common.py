@@ -41,6 +41,7 @@ class UTMOSv2ModelMixin(abc.ABC):
         *,
         input_path: Path | str | None = None,
         input_dir: Path | str | None = None,
+        input_paths: list[Path | str] | None = None,
         val_list: list[str] | None = None,
         val_list_path: Path | str | None = None,
         predict_dataset: str = "sarulab",
@@ -57,10 +58,13 @@ class UTMOSv2ModelMixin(abc.ABC):
         Args:
             input_path (Path | str | None):
                 Path to a single audio file (`.wav`) to predict MOS.
-                Either `input_path` or `input_dir` must be provided, but not both.
+                Exactly one of `input_path`, `input_dir`, or `input_paths` must be provided.
             input_dir (Path | str | None):
                 Path to a directory of `.wav` files to predict MOS.
-                Either `input_path` or `input_dir` must be provided, but not both.
+                Exactly one of `input_path`, `input_dir`, or `input_paths` must be provided.
+            input_paths (list[Path | str] | None):
+                List of paths to audio files (`.wav`) to predict MOS.
+                Exactly one of `input_path`, `input_dir`, or `input_paths` must be provided.
             val_list (list[str] | None):
                 List of filenames to include for prediction. Defaults to None.
             val_list_path (Path | str | None):
@@ -81,19 +85,25 @@ class UTMOSv2ModelMixin(abc.ABC):
                 Whether to display progress during prediction. Defaults to True.
 
         Returns:
-            float: If the `input_path` is specified, returns the predicted MOS.
-            list[dict[str, str | float]]: If the `input_dir` is specified, returns a list of dicts containing file paths and predicted MOS scores.
+            float: If `input_path` is specified, returns the predicted MOS.
+            list[dict[str, str | float]]: If `input_dir` or `input_paths` is specified, returns a list of dicts containing file paths and predicted MOS scores.
 
         Raises:
-            ValueError: If both `input_path` and `input_dir` are provided, or if neither is provided.
+            ValueError: If multiple input options are provided, or if none is provided.
         """
-        if not ((input_path is None) ^ (input_dir is None)):
+        num_inputs_provided = sum([
+            input_path is not None,
+            input_dir is not None,
+            input_paths is not None,
+        ])
+        if num_inputs_provided != 1:
             raise ValueError(
-                "Either `input_path` or `input_dir` must be provided, but not both."
+                "Exactly one of `input_path`, `input_dir`, or `input_paths` must be provided."
             )
         data = self._prepare_data(
             input_path,
             input_dir,
+            input_paths,
             val_list,
             val_list_path,
             predict_dataset,
@@ -130,11 +140,18 @@ class UTMOSv2ModelMixin(abc.ABC):
         self,
         input_path: Path | str | None,
         input_dir: Path | str | None,
+        input_paths: list[Path | str] | None,
         val_list: list[str] | None,
         val_list_path: Path | str | None,
         predict_dataset: str,
     ) -> list[DatasetSchema]:
-        assert (input_path is None) ^ (input_dir is None)
+        num_inputs_provided = sum([
+            input_path is not None,
+            input_dir is not None,
+            input_paths is not None,
+        ])
+        assert num_inputs_provided == 1
+
         if isinstance(input_path, str):
             input_path = Path(input_path)
         if isinstance(input_dir, str):
@@ -143,6 +160,14 @@ class UTMOSv2ModelMixin(abc.ABC):
             raise FileNotFoundError(f"File not found: {input_path}")
         if input_dir is not None and not input_dir.exists():
             raise FileNotFoundError(f"Directory not found: {input_dir}")
+        if input_paths is not None:
+            # Validate all paths in the list
+            for i, p in enumerate(input_paths):
+                if isinstance(p, str):
+                    input_paths[i] = Path(p)
+                if not input_paths[i].exists():
+                    raise FileNotFoundError(f"File not found: {input_paths[i]}")
+
         if val_list_path is not None:
             if val_list:
                 warnings.warn(
@@ -165,7 +190,7 @@ class UTMOSv2ModelMixin(abc.ABC):
                     dataset=predict_dataset,
                 )
             ]
-        if input_dir is not None:
+        elif input_dir is not None:
             res = [
                 DatasetSchema(
                     file_path=p,
@@ -175,6 +200,17 @@ class UTMOSv2ModelMixin(abc.ABC):
             ]
             if not res:
                 raise ValueError(f"No wav files found in {input_dir}")
+        else:  # input_paths is not None
+            res = [
+                DatasetSchema(
+                    file_path=p,
+                    dataset=predict_dataset,
+                )
+                for p in input_paths
+            ]
+            if not res:
+                raise ValueError("input_paths list is empty")
+
         if val_list is not None:
             val_list = [d.replace(".wav", "") for d in val_list]
             res = [

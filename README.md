@@ -100,8 +100,20 @@ If you want to make predictions using the UTMOSv2 library, follow these steps:
       mos = model.predict(input_dir="/path/to/wav/dir/")
       ```
 
+   - To predict the MOS of a specific list of `.wav` files:
+
+      ```python
+      import utmosv2
+      model = utmosv2.create_model(pretrained=True)
+      mos = model.predict(input_paths=[
+          "/path/to/first/file.wav",
+          "/path/to/second/file.wav",
+          "/path/to/third/file.wav",
+      ])
+      ```
+
 > [!NOTE]
-> Either `input_path` or `input_dir` must be specified, but not both.
+> Exactly one of `input_path`, `input_dir`, or `input_paths` must be specified.
 
 <h3 align="center">
   <div>📜 Using the inference script 📜</div>
@@ -139,6 +151,12 @@ If you want to make predictions using the inference script, follow these steps:
       python inference.py --input_dir /path/to/wav/dir/ --out_path /path/to/output/file.csv
       ```
 
+   - To predict the MOS of a specific list of `.wav` files:
+
+      ```bash
+      python inference.py --input_paths /path/to/first/file.wav /path/to/second/file.wav /path/to/third/file.wav --out_path /path/to/output/file.csv
+      ```
+
 > [!NOTE]
 > If you are using zsh, make sure to escape the square brackets like this:
 >
@@ -150,7 +168,7 @@ If you want to make predictions using the inference script, follow these steps:
 > If `--out_path` is not specified, the prediction results will be output to the standard output. This is particularly useful when the number of files to be predicted is small.
 
 > [!NOTE]
-> Either `--input_path` or `--input_dir` must be specified, but not both.
+> Exactly one of `--input_path`, `--input_dir`, or `--input_paths` must be specified.
 
 <br>
 

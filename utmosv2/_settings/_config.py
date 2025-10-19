@@ -39,6 +39,7 @@ def configure_inference_args(cfg: Config, args: argparse.Namespace) -> None:
     cfg.config_name = args.config  # type: ignore
     cfg.input_dir = args.input_dir and Path(args.input_dir)  # type: ignore
     cfg.input_path = args.input_path and Path(args.input_path)  # type: ignore
+    cfg.input_paths = args.input_paths and [Path(p) for p in args.input_paths]  # type: ignore
     cfg.num_workers = args.num_workers  # type: ignore
     cfg.weight = args.weight  # type: ignore
     if not cfg.weight:

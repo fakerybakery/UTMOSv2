@@ -132,6 +132,8 @@ def get_inference_data(cfg: Config) -> "pd.DataFrame":
         if cfg.input_dir:
             files = sorted(glob.glob(str(cfg.input_dir / "*.wav")))
             data = pd.DataFrame({"file_path": files})
+        elif cfg.input_paths:
+            data = pd.DataFrame({"file_path": [p.as_posix() for p in cfg.input_paths]})
         else:
             data = pd.DataFrame({"file_path": [cfg.input_path.as_posix()]})
         data["utt_id"] = data["file_path"].apply(

@@ -79,6 +79,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("-d", "--input_dir", type=str, help="data path")
     parser.add_argument("-p", "--input_path", type=str, help="data path")
+    parser.add_argument("-l", "--input_paths", type=str, nargs="+", help="list of wav file paths")
     parser.add_argument("-o", "--out_path", type=str, help="output path")
     parser.add_argument(
         "-n",
@@ -124,13 +125,18 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if args.input_dir is None and args.input_path is None:
+    num_inputs_provided = sum([
+        args.input_dir is not None,
+        args.input_path is not None,
+        args.input_paths is not None,
+    ])
+    if num_inputs_provided == 0:
         raise ValueError(
-            "Either input_dir or input_path must be provided when you use your own data."
+            "One of input_dir, input_path, or input_paths must be provided when you use your own data."
         )
-    if args.input_dir is not None and args.input_path is not None:
+    if num_inputs_provided > 1:
         raise ValueError(
-            "Only one of input_dir or input_path must be provided when you use your own data."
+            "Only one of input_dir, input_path, or input_paths must be provided when you use your own data."
         )
 
     cfg = importlib.import_module("utmosv2.config." + args.config)

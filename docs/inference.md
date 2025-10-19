@@ -53,6 +53,36 @@ For example, to make predictions with the data-domain ID set to somos, use the f
    ```
 
 <h2 align="center">
+  <div>📦 Batch Processing with a List of Files 📦</div>
+  <a href="https://github.com/sarulab-speech/UTMOSv2/blob/main/docs/inference.md#---batch-processing-with-a-list-of-files---------">
+    <img width="80%" height="6px" src="image/line3.svg">
+  </a>
+</h2>
+
+If you have a specific list of WAV files (not necessarily in the same directory), you can pass them directly for batch processing:
+
+- If you are using in your Python code:
+
+   ```python
+   mos = model.predict(input_paths=[
+       "/path/to/first/file.wav",
+       "/path/to/second/file.wav",
+       "/path/to/third/file.wav",
+   ])
+   ```
+
+- If you are using the inference script:
+
+   ```bash
+   python inference.py --input_paths /path/to/first/file.wav /path/to/second/file.wav /path/to/third/file.wav --out_path /path/to/output/file.csv
+   ```
+
+This is useful when you want to process specific files without organizing them into a single directory or creating a validation list.
+
+> [!NOTE]
+> Only one of `input_path`, `input_dir`, or `input_paths` can be specified at a time.
+
+<h2 align="center">
   <div>✂️ Predicting Only a Subset of Files ✂️</div>
   <a href="https://github.com/sarulab-speech/UTMOSv2/blob/main/docs/inference.md#--%EF%B8%8F-predicting-only-a-subset-of-files-%EF%B8%8F--------">
     <img width="80%" height="6px" src="image/line3.svg">
